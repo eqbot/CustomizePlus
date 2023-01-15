@@ -20,6 +20,7 @@ namespace CustomizePlus.Api
 	{
 		public static readonly string ApiVersion = "1.0";
 		public const string LabelProviderApiVersion				= $"CustomizePlus.{nameof(GetApiVersion)}";
+		public const string LabelBranch							= $"CustomizePlus.{nameof(GetBranch)}";
 		public const string LabelGetBodyScale					= $"CustomizePlus.{nameof(GetBodyScale)}";
 		public const string LabelGetBodyScaleFromCharacter		= $"CustomizePlus.{nameof(GetBodyScaleFromCharacter)}";
 		public const string LabelSetBodyScale					= $"CustomizePlus.{nameof(SetBodyScale)}";
@@ -40,6 +41,7 @@ namespace CustomizePlus.Api
 		internal ICallGateProvider<string, object>?				ProviderRevert;
 		internal ICallGateProvider<Character?, object>?			ProviderRevertCharacter;
 		internal ICallGateProvider<string>?						ProviderGetApiVersion;
+		internal ICallGateProvider<string>?						ProviderGetBranch;
 		internal ICallGateProvider<string?, object?>?			ProviderOnScaleUpdate; //Sends either bodyscale string or null at startup and when scales are saved in the ui
 
 		public CustomizePlusIpc(ObjectTable objectTable, DalamudPluginInterface pluginInterface)
@@ -62,6 +64,7 @@ namespace CustomizePlus.Api
 			ProviderRevert?.UnregisterAction();
 			ProviderRevertCharacter?.UnregisterAction();
 			ProviderGetApiVersion?.UnregisterFunc();
+			ProviderGetBranch?.UnregisterFunc();
 			ProviderGetTemporaryScale?.UnregisterFunc();
 		}
 
@@ -76,6 +79,16 @@ namespace CustomizePlus.Api
 			catch (Exception ex)
 			{
 				PluginLog.Error(ex, $"Error registering IPC provider for {LabelProviderApiVersion}.");
+			}
+
+			try
+			{
+				ProviderGetBranch = pluginInterface.GetIpcProvider<string>(LabelBranch);
+				ProviderGetBranch.RegisterFunc(GetBranch);
+			}
+			catch (Exception ex)
+			{
+				PluginLog.Error(ex, $"Error registering IPC provider for {LabelBranch}.");
 			}
 
 			try
@@ -169,6 +182,9 @@ namespace CustomizePlus.Api
 
 		private static string GetApiVersion()
 			=> ApiVersion;
+
+		private static string GetBranch()
+			=> "eqbot";
 
 		private string? GetBodyScale(string characterName)
 		{
